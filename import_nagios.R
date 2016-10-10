@@ -51,6 +51,13 @@ if (nrow(custom_options[as.character(custom_options$V1) == "service", ]) > 0) {
                 custom_options[as.character(custom_options$V1) == "service", "V2"])
 }
 
+# view
+view <- "1"
+if (nrow(custom_options[as.character(custom_options$V1) == "view", ]) > 0) {
+        view <- as.character(
+                custom_options[as.character(custom_options$V1) == "view", "V2"])
+}
+
 # PIA Url
 pia_url <- ""
 if (nrow(custom_options[as.character(custom_options$V1) == "pia", ]) > 0) {
@@ -99,13 +106,16 @@ setwd('~/cs/ownyourdata/apps/raumklima')
 source('srvBase.R')
 ip <- 'iot.quintessenz.net:22080'
 host <- 'climateplus_5e3c'
-#service <- 'hum'
+service <- 'hum'
 service <- 'temp'
 pia_url <- 'http://localhost:8080'
+pia_url <- 'https://demo-pia.sloppy.zone'
 app_key <- 'eu.ownyourdata.room'
 app_secret <- 'yNl2aAzUvYKSFq7HsY9m'
-#repo <- 'eu.ownyourdata.room.hum1'
+app_secret <- 'y13s0LJzbzJZSGbAo9ge'
+repo <- 'eu.ownyourdata.room.hum1'
 repo <- 'eu.ownyourdata.room.temp1'
+view <- '2'
 "
 
 
@@ -116,7 +126,7 @@ if ((nchar(ip) == 0) |
     (nchar(app_key) == 0) |
     (nchar(app_secret) == 0) |
     (nchar(repo) == 0)){
-        cat("Fehler: fehlende Argumente --ip, --host, --service, --pia, --key, --secret --repo\n")
+        cat("Fehler: fehlende Argumente --ip, --host, --service, --pia, --key, --secret, --repo\n")
         quit()
 }
 
@@ -124,10 +134,10 @@ if ((nchar(ip) == 0) |
 #source <- "http://[abbb::ba27:ebff:fef1:8e19]/mysite/pnp4nagios/xport/json?host=climateplus_6540&srv=temp"
 source <- paste0("http://",
                  ip,
-                 "/mysite/pnp4nagios/xport/json?host=",
-                 host,
-                 "&srv=",
-                 service)
+                 "/mysite/pnp4nagios/xport/json",
+                 "?host=", host,
+                 "&srv=", service,
+                 "&view=", view)
 hdl  <- GET(source, authenticate(nagiosUser, nagiosPwd))
 if(validate(content(hdl, "text"))) {
         raw  <- jsonlite::fromJSON(content(hdl, "text"))

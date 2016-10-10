@@ -5,7 +5,7 @@
 # - run locally
 #   runApp('~/cs/ownyourdata/apps/raumklima', host='0.0.0.0', port=1236)
 # - copy files to Github
-#   cp -r *.R *.txt www github/app-room; cd github/app-room;
+#   cp -r *.R *.r *.txt www github/app-room; cd github/app-room;
 
 # UI files ================================================
 source("uiInit.R")
