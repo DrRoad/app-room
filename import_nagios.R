@@ -107,14 +107,14 @@ source('srvBase.R')
 ip <- 'iot.quintessenz.net:22080'
 host <- 'climateplus_5e3c'
 service <- 'hum'
-service <- 'temp'
+#service <- 'temp'
 pia_url <- 'http://localhost:8080'
 pia_url <- 'https://demo-pia.sloppy.zone'
 app_key <- 'eu.ownyourdata.room'
 app_secret <- 'yNl2aAzUvYKSFq7HsY9m'
 app_secret <- 'y13s0LJzbzJZSGbAo9ge'
 repo <- 'eu.ownyourdata.room.hum1'
-repo <- 'eu.ownyourdata.room.temp1'
+#repo <- 'eu.ownyourdata.room.temp1'
 view <- '2'
 "
 
