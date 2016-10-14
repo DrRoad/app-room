@@ -1,21 +1,13 @@
-# Low-level functions to access PIA =======================
-# used header for GET and POST requests
 defaultHeaders <- function(token) {
         c('Accept'        = '*/*',
           'Content-Type'  = 'application/json',
           'Authorization' = paste('Bearer', token))
 }
-
-# URL to access a repo
 itemsUrl <- function(url, repo_name) {
         paste0(url, '/api/repos/', repo_name, '/items')
 }
-
-# request token for a plugin (app)
 getToken <- function(pia_url, app_key, app_secret) {
         auth_url <- paste0(pia_url, '/oauth/token')
-        # reduce response timeout to 10s to avoid hanging app
-        # https://curl.haxx.se/libcurl/c/CURLOPT_CONNECTTIMEOUT.html
         optTimeout <- RCurl::curlOptions(connecttimeout = 10)
         response <- tryCatch(
                 RCurl::postForm(auth_url,
@@ -34,8 +26,6 @@ getToken <- function(pia_url, app_key, app_secret) {
                 }
         }
 }
-
-# vector with all plugin (app) infos to access PIA
 setupApp <- function(pia_url, app_key, app_secret) {
         app_token <- getToken(pia_url, 
                               app_key, 
@@ -49,9 +39,6 @@ setupApp <- function(pia_url, app_key, app_secret) {
                   'token'      = app_token)
         }
 }
-
-# Read and CRUD Operations for a Plugin (App) =============
-# convert response string into data.frame
 r2d <- function(response){
         if (is.na(response)) {
                 data.frame()
@@ -69,7 +56,6 @@ r2d <- function(response){
                                                     'error.accessDenied') {
                                                         data.frame()
                                                 } else {
-                                                        # convert list to data.frame
                                                         do.call(rbind, 
                                                                 lapply(retVal, 
                                                                        data.frame))
@@ -86,8 +72,6 @@ r2d <- function(response){
                 }
         }
 }
-
-# read data from PIA
 readItems <- function(app, repo_url) {
         if (length(app) == 0) {
                 data.frame()
@@ -133,8 +117,6 @@ readItems <- function(app, repo_url) {
         }
         respData
 }
-
-# write data into PIA
 writeItem <- function(app, repo_url, item) {
         headers <- defaultHeaders(app[['token']])
         data <- rjson::toJSON(item)
@@ -146,8 +128,6 @@ writeItem <- function(app, repo_url, item) {
                         return(NA) })
         response
 }
-
-# update data in PIA
 updateItem <- function(app, repo_url, item, id) {
         headers <- defaultHeaders(app[['token']])
         item <- c(item, c(id=as.numeric(id)))
@@ -159,8 +139,6 @@ updateItem <- function(app, repo_url, item, id) {
                 error = function(e) { return(NA) })
         response
 }
-
-# delete data in PIA
 deleteItem <- function(app, repo_url, id){
         headers <- defaultHeaders(app[['token']])
         item_url <- paste0(repo_url, '/', id)
@@ -170,14 +148,11 @@ deleteItem <- function(app, repo_url, id){
                 error = function(e) { return(NA) })
         response
 }
-
-
 pia_url <- '[pia_url]'
 app_key <- '[app_key]'
 app_secret <- '[app_secret]'
-
 app <- setupApp(pia_url, app_key, app_secret)
 url <- itemsUrl(pia_url, 'eu.ownyourdata.room.hum1')
 dat <- list(timestamp = 1476238920,
             value = 23.51)
-dummy <- writeItem(app, url, dat)
+result <- writeItem(app, url, dat)

@@ -1,6 +1,27 @@
 # configure data import from NAGIOS
 # last update: 2016-10-12
 
+# get stored Sensors in Nagios
+readNagiosItems <- function(){
+        app <- currApp()
+        sensorItems <- data.frame()
+        if(length(app) > 0){
+                url <- itemsUrl(app[['url']], 
+                                paste0(app[['app_key']],
+                                       '.nagios'))
+                sensorItems <- readItems(app, url)
+                if(nrow(sensorItems) > 0){
+                        rownames(sensorItems) <- sensorItems$name
+                        sensorItems <- sensorItems[, c('nagiosUrl',
+                                                       'repo',
+                                                       'user',
+                                                       'password',
+                                                       'active')]
+                }
+        }
+        sensorItems
+}
+
 observe({
         if(is.null(input$sensorList)){
                 allItems <- readNagiosItems()
@@ -36,24 +57,6 @@ observe({
         }
 })
 
-# get stored Sensors in Nagios
-readNagiosItems <- function(){
-        app <- currApp()
-        sensorItems <- data.frame()
-        if(length(app) > 0){
-                url <- itemsUrl(app[['url']], 
-                                paste0(app[['app_key']],
-                                       '.nagios'))
-                sensorItems <- readItems(app, url)
-                if(nrow(sensorItems) > 0){
-                        rownames(sensorItems) <- sensorItems$name
-                        sensorItems <- sensorItems[, c('nagiosUrl',
-                                                       'repo')]
-                }
-        }
-        sensorItems
-}
-
 # show attributes on selecting an item in the Sensor list
 observeEvent(input$sensorList, {
         selItem <- input$sensorList
@@ -65,12 +68,21 @@ observeEvent(input$sensorList, {
         selItemName <- selItem
         selItemNagiosUrl <- allItems[rownames(allItems) == selItem, 'nagiosUrl']
         selItemRepo <- allItems[rownames(allItems) == selItem, 'repo']
+        selItemUser <- allItems[rownames(allItems) == selItem, 'user']
+        selItemPassword <- allItems[rownames(allItems) == selItem, 'password']
+        selItemActive <- allItems[rownames(allItems) == selItem, 'active']
         updateTextInput(session, 'sensorItemName',
                         value = selItemName)
         updateTextInput(session, 'sensorItemNagiosUrl',
                         value = trim(as.character(selItemNagiosUrl)))
         updateTextInput(session, 'sensorItemRepo',
                         value = trim(as.character(selItemRepo)))
+        updateTextInput(session, 'sensorItemUser',
+                        value = trim(as.character(selItemUser)))
+        updateTextInput(session, 'sensorItemPassword',
+                        value = trim(as.character(selItemPassword)))
+        updateCheckboxInput(session, 'sensorItemActive',
+                        value = selItemActive)
 })
 
 observeEvent(input$addSensorItem, {
@@ -78,6 +90,10 @@ observeEvent(input$addSensorItem, {
         itemName <- input$sensorItemName
         itemNagiosUrl <- input$sensorItemNagiosUrl
         itemRepo <- input$sensorItemRepo
+        itemUser <- input$sensorItemUser
+        itemPassword <- input$sensorItemPassword
+        itemActive <- input$sensorItemActive
+        
         allItems <- readNagiosItems()
         if(itemName %in% rownames(allItems)){
                 errMsg <- 'Name bereits vergeben'
@@ -89,11 +105,17 @@ observeEvent(input$addSensorItem, {
                                        '.nagios'))
                 data <- list(name      = itemName,
                              nagiosUrl = itemNagiosUrl,
-                             repo      = itemRepo)
+                             repo      = itemRepo,
+                             user      = itemUser,
+                             password  = itemPassword,
+                             active    = itemActive)
                 writeItem(app, url, data)
                 initNames <- rownames(allItems)
                 allItems$nagiosUrl <- as.character(allItems$nagiosUrl )
                 allItems$repo <- as.character(allItems$repo)
+                allItems$user <- as.character(allItems$user)
+                allItems$password <- as.character(allItems$password)
+                allItems$active <- as.logical(allItems$active)
                 allItems <- rbind(allItems, c(itemNagiosUrl, 
                                               itemRepo))
                 
@@ -106,6 +128,12 @@ observeEvent(input$addSensorItem, {
                                 value = '')
                 updateTextInput(session, 'sensorItemRepo',
                                 value = '')
+                updateTextInput(session, 'sensorItemUser',
+                                value = '')
+                updateTextInput(session, 'sensorItemPassword',
+                                value = '')
+                updateCheckboxInput(session, 'sensorItemActive',
+                                    value = FALSE)
         }
         closeAlert(session, 'mySensorItemStatus')
         if(errMsg != ''){
@@ -124,6 +152,9 @@ observeEvent(input$updateSensorItem, {
         itemName <- input$sensorItemName
         itemNagiosUrl <- input$sensorItemNagiosUrl
         itemRepo <- input$sensorItemRepo
+        itemUser <- input$sensorItemUser
+        itemPassword <- input$sensorItemPassword
+        itemActive <- input$sensorItemActive
         if(is.null(selItem)){
                 errMsg <- 'Keine Sensor ausgewählt.'
         }
@@ -135,7 +166,10 @@ observeEvent(input$updateSensorItem, {
                                        '.nagios'))
                 data <- list(name      = itemName,
                              nagiosUrl = itemNagiosUrl,
-                             repo      = itemRepo)
+                             repo      = itemRepo,
+                             user      = itemUser,
+                             password  = itemPassword,
+                             active    = itemActive)
                 sensorItems <- readItems(app, url)
                 id <- sensorItems[sensorItems$name == selItem, 'id']
                 updateItem(app, url, data, id)
@@ -150,6 +184,12 @@ observeEvent(input$updateSensorItem, {
                                 value = '')
                 updateTextInput(session, 'sensorItemRepo',
                                 value = '')
+                updateTextInput(session, 'sensorItemUser',
+                                value = '')
+                updateTextInput(session, 'sensorItemPassword',
+                                value = '')
+                updateCheckboxInput(session, 'sensorItemActive',
+                                    value = FALSE)
         }
         closeAlert(session, 'mySensorItemStatus')
         if(errMsg != ''){
@@ -189,6 +229,12 @@ observeEvent(input$delSensorList, {
                                 value = '')
                 updateTextInput(session, 'sensorItemRepo',
                                 value = '')
+                updateTextInput(session, 'sensorItemUser',
+                                value = '')
+                updateTextInput(session, 'sensorItemPassword',
+                                value = '')
+                updateCheckboxInput(session, 'sensorItemActive',
+                                    value = FALSE)
         }
         closeAlert(session, 'mySensorItemStatus')
         if(errMsg != ''){
@@ -205,3 +251,121 @@ observeEvent(input$testNagiosUrl, {
         session$sendCustomMessage(type='openUrlInNewTab',
                                   input$sensorItemNagiosUrl)
 })
+
+observeEvent(input$importSensorList, {
+        errMsg <- ''
+        succMsg <- ''
+        selItem <- input$sensorList
+        if(is.null(selItem)){
+                errMsg <- 'Kein Sensor ausgewählt.'
+        }
+        if(errMsg == ''){
+                allItems <- readNagiosItems()
+                selItemName <- selItem
+                selItemNagiosUrl <- as.character(trim(
+                        allItems[rownames(allItems) == selItem, 'nagiosUrl']))
+                selItemRepo <- as.character(trim(
+                        allItems[rownames(allItems) == selItem, 'repo']))
+                selItemUser <- as.character(trim(
+                        allItems[rownames(allItems) == selItem, 'user']))
+                selItemPwd <- as.character(trim(
+                        allItems[rownames(allItems) == selItem, 'password']))
+                cnt <- importNagios(selItemNagiosUrl, 
+                                    selItemRepo,
+                                    selItemUser,
+                                    selItemPwd)
+                succMsg <- paste(cnt, 'Datensätze importiert.')
+        }
+        closeAlert(session, 'mySensorItemStatus')
+        if(errMsg != ''){
+                createAlert(session, 'taskInfo', 
+                            'mySensorItemStatus',
+                            title = 'Achtung',
+                            content = errMsg,
+                            style = 'warning',
+                            append = 'false')
+        }
+        if(succMsg != ''){
+                createAlert(session, 'taskInfo', 
+                            'mySensorItemStatus',
+                            title = 'Aktion erfolgreich',
+                            content = succMsg,
+                            style = 'info',
+                            append = 'false')
+        }
+})
+
+importNagios <- function(nagiosUrl, repo, nagiosUser, nagiosPwd){
+        cnt <- 0
+        # get data --------------------------------------
+        hdl  <- GET(nagiosUrl, authenticate(nagiosUser, nagiosPwd))
+        if(validate(content(hdl, "text"))) {
+                raw  <- jsonlite::fromJSON(content(hdl, "text"))
+                tmp <- unlist(raw$data$row)
+                val <- as.numeric(tmp[seq(3, length(tmp), 3)])
+                meta <- raw[1]$meta
+                seq <- as.integer(meta$start) + 
+                        (1:as.integer(meta$rows))*as.integer(meta$step)
+                data <- as.data.frame(cbind(seq, val))
+                # connect PIA ---------------------------------------------
+                app <- currApp()
+                data_url <- itemsUrl(app[['url']], repo)
+                pia_data <- readItems(app, data_url)
+                
+                # merge data
+                if(nrow(data) > 0) {
+                        if(nrow(pia_data) > 0){
+                                mrg_data <- merge(data, pia_data, 
+                                                  by.x='seq', by.y='timestamp',
+                                                  all = TRUE)
+                        } else {
+                                mrg_data <- data
+                                mrg_data$value <- NA
+                                mrg_data$id <- NA
+                        }
+                } else {
+                        if(nrow(pia_data) > 0){
+                                mrg_data <- pia_data
+                                mrg_data$val <- NA
+                        } else {
+                                mrg_data <- data.frame()
+                        }
+                }
+                
+                # what is different -> updateItem
+                upd_items <- mrg_data[(mrg_data$val != mrg_data$value) & 
+                                              !is.na(mrg_data$id), 
+                                      c('id', 'seq', 'val')]
+                upd_items <- upd_items[complete.cases(upd_items), ]
+                if (nrow(upd_items) > 0) {
+                        invisible(apply(
+                                upd_items,
+                                1,
+                                function(x) {
+                                        cnt <- cnt + 1
+                                        item <- list(timestamp = x[['seq']], 
+                                                     value     = x[['val']])
+                                        dummy <- updateItem(app, data_url, item, x[['id']])
+                                }
+                        ))
+                }
+                
+                # what is new -> writeItem
+                new_items <- mrg_data[(!is.na(mrg_data$val) & 
+                                               is.na(mrg_data$value)), 
+                                      c('seq', 'val')]
+                if (nrow(new_items) > 0) {
+                        invisible(apply(
+                                new_items,
+                                1,
+                                function(x) {
+                                        cnt <<- cnt + 1
+                                        item <- list(timestamp = x[['seq']], 
+                                                     value     = x[['val']])
+                                        dummy <- writeItem(app, data_url, item)
+                                }
+                        ))
+                }
+        }
+        cnt
+}

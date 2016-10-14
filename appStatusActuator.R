@@ -32,7 +32,7 @@ appStatusActuator <- function(){
                                 textInput('actuatorItemCommand',
                                           'Befehl:'),
                                 checkboxInput('actuatorItemActive',
-                                              'Aktiviert'),
+                                              'aktiv'),
                                 br(),
                                 actionButton('addActuatorItem', 
                                              'Hinzufügen', icon('plus')),
