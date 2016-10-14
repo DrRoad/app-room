@@ -1,9 +1,12 @@
 # application specific logic
-# last update: 2016-10-07
+# last update: 2016-10-12
 
 source('srvDateselect.R', local=TRUE)
 source('srvEmail.R', local=TRUE)
+source('srvScheduler.R', local=TRUE)
 source('appLogicChart.R', local=TRUE)
+source('appLogicNagios.R', local=TRUE)
+source('appLogicActuator.R', local=TRUE)
 
 # any record manipulations before storing a record
 appData <- function(record){

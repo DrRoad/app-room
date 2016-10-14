@@ -195,7 +195,7 @@ upd_items <- mrg_data[(mrg_data$val != mrg_data$value) &
                       c('id', 'seq', 'val')]
 upd_items <- upd_items[complete.cases(upd_items), ]
 if (nrow(upd_items) > 0) {
-        apply(
+        invisible(apply(
                 upd_items,
                 1,
                 function(x) {
@@ -208,7 +208,7 @@ if (nrow(upd_items) > 0) {
                                      value     = x[['val']])
                         dummy <- updateItem(app, data_url, item, x[['id']])
                 }
-        )
+        ))
 }
 
 # what is new -> writeItem
