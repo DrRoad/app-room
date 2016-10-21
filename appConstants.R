@@ -7,12 +7,40 @@ appTitle <- 'Raumklima'
 app_id <- 'eu.ownyourdata.room'
 scheduler_id <- 'eu.ownyourdata.scheduler'        
 
-appFields <- c('timestamp', 'value')
-appFieldKey <- 'timestamp'
-appFieldTypes <- c('timestamp', 'number')
-appFieldInits <- c('empty', 'empty')
-appFieldTitles <- c('Zeit', 'Wert')
-appFieldWidths <- c(100, 100)
+# definition of data structure
+currRepoSelect <- ''
+appRepos <- list(Nagios   = 'eu.ownyourdata.room.nagios',
+                 Actuator = 'eu.ownyourdata.room.actuator',
+                 Verlauf  = 'eu.ownyourdata.room.log')
+appStruct <- list(
+        Nagios = list(
+                fields      = c('name', 'nagiosUrl', 'repo', 'user', 'password', 'active'),
+                fieldKey    = 'name',
+                fieldTypes  = c('string', 'string', 'string', 'string', 'string', 'boolean'),
+                fieldInits  = c('empty', 'empty', 'empty', 'empty', 'empty', 'false'),
+                fieldTitles = c('Sensor', 'NAGIOS URL', 'Repo', 'Benutzer', 'Passwort', 'aktiv'),
+                fieldWidths = c(150, 200, 150, 100, 100, 60)),
+        Actuator = list(
+                fields      = c('name', 'scenarios', 'params', 'command', 'active'),
+                fieldKey    = 'name',
+                fieldTypes  = c('string', 'string', 'string', 'string', 'boolean'),
+                fieldInits  = c('empty', 'empty', 'empty', 'empty', 'false'),
+                fieldTitles = c('Aktor', 'Szenario', 'Parameter', 'Befehl', 'aktiv'),
+                fieldWidths = c(150, 150, 250, 100, 60)),
+        Verlauf = list(
+                fields      = c('date', 'description'),
+                fieldKey    = 'date',
+                fieldTypes  = c('date', 'string'),
+                fieldInits  = c('empty', 'empty'),
+                fieldTitles = c('Datum', 'Text'),
+                fieldWidths = c(150, 450)))
+
+# appFields <- c('timestamp', 'value')
+# appFieldKey <- 'timestamp'
+# appFieldTypes <- c('timestamp', 'number')
+# appFieldInits <- c('empty', 'empty')
+# appFieldTitles <- c('Zeit', 'Wert')
+# appFieldWidths <- c(100, 100)
 
 # Version information
 currVersion <- "0.3.0"

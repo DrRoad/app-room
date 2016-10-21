@@ -14,12 +14,18 @@ appData <- function(record){
 }
 
 getRepoStruct <- function(repo){
-        list('fields'      = appFields,
-             'fieldKey'    = appFieldKey,
-             'fieldTypes'  = appFieldTypes,
-             'fieldInits'  = appFieldInits,
-             'fieldTitles' = appFieldTitles,
-             'fieldWidths' = appFieldWidths) 
+        appStruct[[repo]]
+}
+
+repoData <- function(repo){
+        data <- data.frame()
+        app <- currApp()
+        if(length(app) > 0){
+                url <- itemsUrl(app[['url']],
+                                repo)
+                data <- readItems(app, url)
+        }
+        data
 }
 
 output$compareChart <- renderPlotly({

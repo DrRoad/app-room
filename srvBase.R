@@ -168,8 +168,8 @@ deleteItem <- function(app, repo_url, id){
         headers <- defaultHeaders(app[['token']])
         item_url <- paste0(repo_url, '/', id)
         response <- tryCatch(
-                httr::DELETE(item_url, 
-                       add_headers(headers)),
+                httr::DELETE(item_url,
+                             add_headers(headers)),
                 error = function(e) { return(NA) })
         response
 }

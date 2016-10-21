@@ -20,6 +20,10 @@ getLocalEmailConfig <- reactive({
           'pwd'=pwd)
 })
 
+schedulerKey <- function(){
+        'eu.ownyourdata.scheduler'        
+}
+
 schedulerEmailConfigKey <- function(){
         'eu.ownyourdata.scheduler.email_config'
 }
