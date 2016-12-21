@@ -103,6 +103,7 @@ observeEvent(input$addActuatorItem, {
                              params   = itemParameters,
                              command  = itemCommand,
                              active   = itemActive) 
+                data$`_oydRepoName` <- "Aktoren"
                 writeItem(app, url, data)
                 initNames <- rownames(allItems)
                 allItems$scenario <- as.character(allItems$scenario)

@@ -22,27 +22,31 @@ readNagiosItems <- function(){
         sensorItems
 }
 
+# executed on Start
 observe({
         if(is.null(input$sensorList)){
+                sensorList()
                 allItems <- readNagiosItems()
                 updateSelectInput(session, 'sensorList',
                                   choices = rownames(allItems))
                 
-                # check if periodic Nagios Import is scheduled
-                schedulerItems <- readSchedulerItems()
-                rScript <- toString(nagiosImportScript)
+                # check if periodic Nagios Import is scheduled and script is
+                # available
                 app <- currApp()
                 if(length(app) > 0){
+                        schedulerItems <- readSchedulerItems()
                         replace = list(pia_url    = app[['url']], 
                                        app_key    = app[['app_key']],
                                        app_secret = app[['app_secret']])
                         parameters <- list(
-                                Rscript_base64=rScript,
+                                Rscript_reference = 'nagios_import',
+                                Rscript_repo = scriptRepo,
                                 replace=replace)
                         config <- list(repo=app[['app_key']],
-                                       time='* * * * *',
+                                       time='0 */2 * * *',
                                        task='Rscript',
                                        parameters=parameters)
+                        config$`_oydRepoName` <- 'Scheduler'
                         if(is.null(schedulerItems[['id']])) {
                                 writeItem(app,
                                           itemsUrl(app[['url']], scheduler_id),
@@ -52,6 +56,22 @@ observe({
                                            itemsUrl(app[['url']], scheduler_id),
                                            config,
                                            schedulerItems[['id']])
+                        }
+                        scriptRepoUrl <- itemsUrl(app[['url']], scriptRepo)
+                        scriptItems <- readItems(app, scriptRepoUrl)
+                        scriptData <- list(name='nagios_import',
+                                     script=nagiosImportScript)
+                        scriptData$`_oydRepoName` <- 'Raumklima-Skript'
+                        if (nrow(scriptItems) == 0){
+                                writeItem(app,
+                                          scriptRepoUrl,
+                                          scriptData)
+                        }
+                        if (nrow(scriptItems) == 1){
+                                updateItem(app,
+                                           scriptRepoUrl,
+                                           scriptData,
+                                           scriptItems[['id']])
                         }
                 }
         }
@@ -109,6 +129,7 @@ observeEvent(input$addSensorItem, {
                              user      = itemUser,
                              password  = itemPassword,
                              active    = itemActive)
+                data$`_oydRepoName` <- 'NAGIOS Import'
                 writeItem(app, url, data)
                 initNames <- rownames(allItems)
                 allItems$nagiosUrl <- as.character(allItems$nagiosUrl )
@@ -272,6 +293,7 @@ observeEvent(input$importSensorList, {
                         allItems[rownames(allItems) == selItem, 'password']))
                 cnt <- importNagios(selItemNagiosUrl, 
                                     selItemRepo,
+                                    selItemName,
                                     selItemUser,
                                     selItemPwd)
                 succMsg <- paste(cnt, 'Datensätze importiert.')
@@ -295,17 +317,27 @@ observeEvent(input$importSensorList, {
         }
 })
 
-importNagios <- function(nagiosUrl, repo, nagiosUser, nagiosPwd){
+importNagios <- function(nagiosUrl, repo, repoName, nagiosUser, nagiosPwd){
         cnt <- 0
         # get data --------------------------------------
-        hdl  <- GET(nagiosUrl, authenticate(nagiosUser, nagiosPwd))
-        if(validate(content(hdl, "text"))) {
-                raw  <- jsonlite::fromJSON(content(hdl, "text"))
-                tmp <- unlist(raw$data$row)
-                val <- as.numeric(tmp[seq(3, length(tmp), 3)])
+        #hdl  <- GET(nagiosUrl, authenticate(nagiosUser, nagiosPwd))
+        hdl <- getURL(nagiosUrl, 
+                      userpwd=paste(nagiosUser, nagiosPwd, sep = ':'),
+                      httpauth = 1L, 
+                      ssl.verifypeer = FALSE)
+        #if(validate(content(hdl, "text"))) {
+        #        raw  <- jsonlite::fromJSON(content(hdl, "text"))
+        if(typeof(hdl) == 'character') {
+                raw <- jsonlite::fromJSON(hdl)
                 meta <- raw[1]$meta
-                seq <- as.integer(meta$start) + 
-                        (1:as.integer(meta$rows))*as.integer(meta$step)
+                rows <- raw[2]$data$row
+                seq <- as.numeric(rows$t)
+                val <- lapply(rows$v, function(x){ as.numeric(x[1]) })
+                # tmp <- unlist(raw$data$row)
+                # val <- as.numeric(tmp[seq(3, length(tmp), 3)])
+                # meta <- raw[1]$meta
+                # seq <- as.integer(meta$start) + 
+                #         (1:as.integer(meta$rows))*as.integer(meta$step)
                 data <- as.data.frame(cbind(seq, val))
                 # connect PIA ---------------------------------------------
                 app <- currApp()
@@ -362,7 +394,8 @@ importNagios <- function(nagiosUrl, repo, nagiosUser, nagiosPwd){
                                         cnt <<- cnt + 1
                                         item <- list(timestamp = x[['seq']], 
                                                      value     = x[['val']])
-                                        dummy <- writeItem(app, data_url, item)
+                                        item$`_oydRepoName` <- repoName
+                                        writeItem(app, data_url, item)
                                 }
                         ))
                 }

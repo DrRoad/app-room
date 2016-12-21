@@ -7,7 +7,7 @@ appStore <- function(){
                        h3('Datenblatt'),
                        selectInput('repoSelect',
                                    label = 'Auswahl:',
-                                   choices = names(appRepos)),
+                                   choices = names(appReposDefault)),
                        rHandsontableOutput('dataSheet'),
                        br(),
                        htmlOutput('dataSheetDirty', inline = TRUE),

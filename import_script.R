@@ -3,9 +3,11 @@ defaultHeaders <- function(token) {
           'Content-Type'  = 'application/json',
           'Authorization' = paste('Bearer', token))
 }
+
 itemsUrl <- function(url, repo_name) {
         paste0(url, '/api/repos/', repo_name, '/items')
 }
+
 getToken <- function(pia_url, app_key, app_secret) {
         auth_url <- paste0(pia_url, '/oauth/token')
         optTimeout <- RCurl::curlOptions(connecttimeout = 10)
@@ -26,6 +28,7 @@ getToken <- function(pia_url, app_key, app_secret) {
                 }
         }
 }
+
 setupApp <- function(pia_url, app_key, app_secret) {
         app_token <- getToken(pia_url, 
                               app_key, 
@@ -39,6 +42,7 @@ setupApp <- function(pia_url, app_key, app_secret) {
                   'token'      = app_token)
         }
 }
+
 r2d <- function(response){
         if (is.na(response)) {
                 data.frame()
@@ -72,6 +76,7 @@ r2d <- function(response){
                 }
         }
 }
+
 readItems <- function(app, repo_url) {
         if (length(app) == 0) {
                 data.frame()
@@ -117,6 +122,7 @@ readItems <- function(app, repo_url) {
         }
         respData
 }
+
 writeItem <- function(app, repo_url, item) {
         headers <- defaultHeaders(app[['token']])
         data <- rjson::toJSON(item)
@@ -128,6 +134,7 @@ writeItem <- function(app, repo_url, item) {
                         return(NA) })
         response
 }
+
 updateItem <- function(app, repo_url, item, id) {
         headers <- defaultHeaders(app[['token']])
         item <- c(item, c(id=as.numeric(id)))
@@ -139,6 +146,7 @@ updateItem <- function(app, repo_url, item, id) {
                 error = function(e) { return(NA) })
         response
 }
+
 deleteItem <- function(app, repo_url, id){
         headers <- defaultHeaders(app[['token']])
         item_url <- paste0(repo_url, '/', id)
@@ -148,11 +156,93 @@ deleteItem <- function(app, repo_url, id){
                 error = function(e) { return(NA) })
         response
 }
+
+importNagios <- function(nagiosUrl, nagiosUser, nagiosPwd, app, repo){
+        cnt <- 0
+        # get data --------------------------------------
+        hdl  <- GET(nagiosUrl, authenticate(nagiosUser, nagiosPwd))
+        if(validate(content(hdl, "text"))) {
+                raw  <- jsonlite::fromJSON(content(hdl, "text"))
+                tmp <- unlist(raw$data$row)
+                val <- as.numeric(tmp[seq(3, length(tmp), 3)])
+                meta <- raw[1]$meta
+                seq <- as.integer(meta$start) + 
+                        (1:as.integer(meta$rows))*as.integer(meta$step)
+                data <- as.data.frame(cbind(seq, val))
+                # connect PIA ---------------------------------------------
+                data_url <- itemsUrl(app[['url']], repo)
+                pia_data <- readItems(app, data_url)
+                
+                # merge data
+                if(nrow(data) > 0) {
+                        if(nrow(pia_data) > 0){
+                                mrg_data <- merge(data, pia_data, 
+                                                  by.x='seq', by.y='timestamp',
+                                                  all = TRUE)
+                        } else {
+                                mrg_data <- data
+                                mrg_data$value <- NA
+                                mrg_data$id <- NA
+                        }
+                } else {
+                        if(nrow(pia_data) > 0){
+                                mrg_data <- pia_data
+                                mrg_data$val <- NA
+                        } else {
+                                mrg_data <- data.frame()
+                        }
+                }
+                
+                # what is different -> updateItem
+                upd_items <- mrg_data[(mrg_data$val != mrg_data$value) & 
+                                              !is.na(mrg_data$id), 
+                                      c('id', 'seq', 'val')]
+                upd_items <- upd_items[complete.cases(upd_items), ]
+                if (nrow(upd_items) > 0) {
+                        invisible(apply(
+                                upd_items,
+                                1,
+                                function(x) {
+                                        cnt <- cnt + 1
+                                        item <- list(timestamp = x[['seq']], 
+                                                     value     = x[['val']])
+                                        dummy <- updateItem(app, data_url, item, x[['id']])
+                                }
+                        ))
+                }
+                
+                # what is new -> writeItem
+                new_items <- mrg_data[(!is.na(mrg_data$val) & 
+                                               is.na(mrg_data$value)), 
+                                      c('seq', 'val')]
+                if (nrow(new_items) > 0) {
+                        invisible(apply(
+                                new_items,
+                                1,
+                                function(x) {
+                                        cnt <<- cnt + 1
+                                        item <- list(timestamp = x[['seq']], 
+                                                     value     = x[['val']])
+                                        dummy <- writeItem(app, data_url, item)
+                                }
+                        ))
+                }
+        }
+        cnt
+}
+
 pia_url <- '[pia_url]'
 app_key <- '[app_key]'
 app_secret <- '[app_secret]'
 app <- setupApp(pia_url, app_key, app_secret)
-url <- itemsUrl(pia_url, 'eu.ownyourdata.room.hum1')
-dat <- list(timestamp = 1476238920,
-            value = 23.51)
-result <- writeItem(app, url, dat)
+url <- itemsUrl(pia_url, 'eu.ownyourdata.room.nagios')
+sensors <- readItems(app, url)
+for (i in 1:nrow(sensors)){
+        importNagios(
+                as.character(sensors[i, 'nagiosUrl']),
+                as.character(sensors[i, 'user']),
+                as.character(sensors[i, 'password']),
+                app,
+                as.character(sensors[i, 'repo'])
+        )
+}

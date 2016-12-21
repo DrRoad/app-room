@@ -14,7 +14,19 @@ appData <- function(record){
 }
 
 getRepoStruct <- function(repo){
-        appStruct[[repo]]
+        if((repo == 'Verlauf') |
+           (repo == 'Nagios') |
+           (repo == 'Actuator')) {
+                appStruct[[repo]]
+        } else {
+                list(
+                        fields = c('timestamp', 'value'),
+                        fieldKey = 'timestamp',
+                        fieldTypes = c('timestamp', 'number'),
+                        fieldInits = c('empty', 'empty'),
+                        fieldTitles = c('Zeit', 'Wert'),
+                        fieldWidths = c(100, 100))
+        }
 }
 
 repoData <- function(repo){

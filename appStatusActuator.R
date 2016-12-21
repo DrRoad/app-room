@@ -4,7 +4,7 @@
 appStatusActuator <- function(){
         tabPanel('Aktoren',
                  br(),
-                 helpText('Konfiguriere hier Szeanrien für vorhandene Aktoren.',
+                 helpText('Konfiguriere hier Aktionen für vorhandene Aktoren.',
                           style='display:inline'),
                  br(),br(),
                  fluidRow(
@@ -25,10 +25,11 @@ appStatusActuator <- function(){
                                 textInput('actuatorItemName',
                                           'Name:'),
                                 selectInput('actuatorItemScenario',
-                                            label = 'Szenario:',
-                                            choices = c('Fenster zum Kühlen öffnen')),
+                                            label = 'Steuerung:',
+                                            choices = c('Messwertabfrage',
+                                                        'manuell')),
                                 textInput('actuatorItemParameters',
-                                          'Szenarien Parameter:'),
+                                          'Parameter:'),
                                 textInput('actuatorItemCommand',
                                           'Befehl:'),
                                 checkboxInput('actuatorItemActive',

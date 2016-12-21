@@ -267,6 +267,7 @@ drawDataSheet <- function(){
         fieldKey <- repoStruct[['fieldKey']]
         fieldWidths <- repoStruct[['fieldWidths']]
         data <- repoData(repo)
+        save(currRepoSelect, repo, repoName, repoStruct, fields, fieldKey, data, file='tmpStore2.RData')
         if(is.null(data[[fieldKey]])){
                 data <- data.frame()
         } else {
@@ -294,6 +295,7 @@ writeLog <- function(logText){
                 dataItem <- list(
                         date = as.character(Sys.time()),
                         description = logText)
+                dataItem$`_oydRepoName` <- 'Log'
                 writeItem(app, repoUrl, dataItem)
         }
 }

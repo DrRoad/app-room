@@ -193,6 +193,7 @@ observeEvent(input$p3next, {
         if(nrow(mailConfig) > 0){
                 retVal <- updateItem(app, url, data, mailConfig$id)
         } else {
+                data$`_oydRepoName` <- 'Email-Setup'
                 retVal <- writeItem(app, url, data)
         }
         
