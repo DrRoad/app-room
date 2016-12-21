@@ -46,10 +46,10 @@ appStruct <- list(
 # Version information
 currVersion <- "0.3.1"
 verHistory <- data.frame(rbind(
-        c(version = "0.3.0",
-          text    = "erstes Release"),
         c(version = "0.3.1",
-          text    = "Verwendung von Listennamen in neuem Datentresor")
+          text    = "Verwendung von Listennamen in neuem Datentresor"),
+        c(version = "0.3.0",
+          text    = "erstes Release")
 ))
 
 # app specific constants

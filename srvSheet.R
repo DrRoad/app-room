@@ -267,7 +267,6 @@ drawDataSheet <- function(){
         fieldKey <- repoStruct[['fieldKey']]
         fieldWidths <- repoStruct[['fieldWidths']]
         data <- repoData(repo)
-        save(currRepoSelect, repo, repoName, repoStruct, fields, fieldKey, data, file='tmpStore2.RData')
         if(is.null(data[[fieldKey]])){
                 data <- data.frame()
         } else {

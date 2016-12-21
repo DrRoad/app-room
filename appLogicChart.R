@@ -42,7 +42,6 @@ sensorList <- function(){
                 'repoSelect',
                 choices = names(appRepos),
                 selected = 'Nagios')
-        save(appRepos, appReposDefault, sensors, file='tmpStore.RData')
 }
 
 comparePlotly <- function(){
