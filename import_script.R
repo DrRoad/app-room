@@ -1,22 +1,14 @@
 defaultHeaders <- function(token) {
-        c('Accept'        = '*/*',
-          'Content-Type'  = 'application/json',
-          'Authorization' = paste('Bearer', token))
+        c('Accept'        = '*/*', 'Content-Type'  = 'application/json', 'Authorization' = paste('Bearer', token))
 }
-
 itemsUrl <- function(url, repo_name) {
         paste0(url, '/api/repos/', repo_name, '/items')
 }
-
 getToken <- function(pia_url, app_key, app_secret) {
         auth_url <- paste0(pia_url, '/oauth/token')
         optTimeout <- RCurl::curlOptions(connecttimeout = 10)
         response <- tryCatch(
-                RCurl::postForm(auth_url,
-                                client_id     = app_key,
-                                client_secret = app_secret,
-                                grant_type    = 'client_credentials',
-                                .opts         = optTimeout),
+                RCurl::postForm(auth_url, client_id = app_key, client_secret = app_secret, grant_type = 'client_credentials', .opts = optTimeout),
                 error = function(e) { return(NA) })
         if (is.na(response)) {
                 return(NA)
@@ -28,21 +20,14 @@ getToken <- function(pia_url, app_key, app_secret) {
                 }
         }
 }
-
 setupApp <- function(pia_url, app_key, app_secret) {
-        app_token <- getToken(pia_url, 
-                              app_key, 
-                              app_secret)
+        app_token <- getToken(pia_url, app_key, app_secret)
         if(is.na(app_token)){
                 vector()
         } else {
-                c('url'        = pia_url,
-                  'app_key'    = app_key,
-                  'app_secret' = app_secret,
-                  'token'      = app_token)
+                c('url' = pia_url, 'app_key' = app_key, 'app_secret' = app_secret, 'token' = app_token)
         }
 }
-
 r2d <- function(response){
         if (is.na(response)) {
                 data.frame()
@@ -60,14 +45,10 @@ r2d <- function(response){
                                                     'error.accessDenied') {
                                                         data.frame()
                                                 } else {
-                                                        do.call(rbind, 
-                                                                lapply(retVal, 
-                                                                       data.frame))
+                                                        do.call(rbind, lapply(retVal, data.frame))
                                                 }
                                         } else {
-                                                do.call(rbind, 
-                                                        lapply(retVal, 
-                                                               data.frame))
+                                                do.call(rbind, lapply(retVal, data.frame))
                                         }
                                 }
                         }
@@ -76,7 +57,6 @@ r2d <- function(response){
                 }
         }
 }
-
 readItems <- function(app, repo_url) {
         if (length(app) == 0) {
                 data.frame()
@@ -86,9 +66,7 @@ readItems <- function(app, repo_url) {
         url_data <- paste0(repo_url, '?size=2000')
         header <- RCurl::basicHeaderGatherer()
         doc <- tryCatch(
-                RCurl::getURI(url_data,
-                              .opts=list(httpheader = headers),
-                              headerfunction = header$update),
+                RCurl::getURI(url_data, .opts=list(httpheader = headers), headerfunction = header$update),
                 error = function(e) { return(NA) })
         response <- NA
         respData <- data.frame()
@@ -114,71 +92,54 @@ readItems <- function(app, repo_url) {
                         }
                 } else {
                         response <- tryCatch(
-                                RCurl::getURL(url_data,
-                                              .opts=list(httpheader = headers)),
+                                RCurl::getURL(url_data, .opts=list(httpheader = headers)),
                                 error = function(e) { return(NA) })
                         respData <- r2d(response)
                 }
         }
         respData
 }
-
 writeItem <- function(app, repo_url, item) {
         headers <- defaultHeaders(app[['token']])
         data <- rjson::toJSON(item)
         response <- tryCatch(
-                RCurl::postForm(repo_url,
-                                .opts=list(httpheader = headers,
-                                           postfields = data)),
+                RCurl::postForm(repo_url, .opts=list(httpheader = headers, postfields = data)),
                 error = function(e) { 
                         return(NA) })
         response
 }
-
 updateItem <- function(app, repo_url, item, id) {
         headers <- defaultHeaders(app[['token']])
         item <- c(item, c(id=as.numeric(id)))
         data <- rjson::toJSON(item)
         response <- tryCatch(
-                RCurl::postForm(repo_url,
-                                .opts=list(httpheader = headers,
-                                           postfields = data)),
+                RCurl::postForm(repo_url, .opts=list(httpheader = headers, postfields = data)),
                 error = function(e) { return(NA) })
         response
 }
-
 deleteItem <- function(app, repo_url, id){
         headers <- defaultHeaders(app[['token']])
         item_url <- paste0(repo_url, '/', id)
         response <- tryCatch(
-                httr::DELETE(item_url, 
-                             add_headers(headers)),
+                httr::DELETE(item_url, add_headers(headers)),
                 error = function(e) { return(NA) })
         response
 }
-
-importNagios <- function(nagiosUrl, nagiosUser, nagiosPwd, app, repo){
+importNagios <- function(nagiosUrl, app, repo, repoName, nagiosUser, nagiosPwd){
         cnt <- 0
-        # get data --------------------------------------
-        hdl  <- GET(nagiosUrl, authenticate(nagiosUser, nagiosPwd))
-        if(validate(content(hdl, "text"))) {
-                raw  <- jsonlite::fromJSON(content(hdl, "text"))
-                tmp <- unlist(raw$data$row)
-                val <- as.numeric(tmp[seq(3, length(tmp), 3)])
+        hdl <- RCurl::getURL(nagiosUrl, userpwd=paste(nagiosUser, nagiosPwd, sep = ':'), httpauth = 1L, ssl.verifypeer = FALSE, ssl.verifyhost = FALSE)
+        if(typeof(hdl) == 'character') {
+                raw <- jsonlite::fromJSON(hdl)
                 meta <- raw[1]$meta
-                seq <- as.integer(meta$start) + 
-                        (1:as.integer(meta$rows))*as.integer(meta$step)
+                rows <- raw[2]$data$row
+                seq <- as.numeric(rows$t)
+                val <- unlist(lapply(rows$v, function(x){ as.numeric(x[1]) }))
                 data <- as.data.frame(cbind(seq, val))
-                # connect PIA ---------------------------------------------
                 data_url <- itemsUrl(app[['url']], repo)
                 pia_data <- readItems(app, data_url)
-                
-                # merge data
                 if(nrow(data) > 0) {
                         if(nrow(pia_data) > 0){
-                                mrg_data <- merge(data, pia_data, 
-                                                  by.x='seq', by.y='timestamp',
-                                                  all = TRUE)
+                                mrg_data <- merge(data, pia_data, by.x='seq', by.y='timestamp', all = TRUE)
                         } else {
                                 mrg_data <- data
                                 mrg_data$value <- NA
@@ -192,40 +153,23 @@ importNagios <- function(nagiosUrl, nagiosUser, nagiosPwd, app, repo){
                                 mrg_data <- data.frame()
                         }
                 }
-                
-                # what is different -> updateItem
-                upd_items <- mrg_data[(mrg_data$val != mrg_data$value) & 
-                                              !is.na(mrg_data$id), 
-                                      c('id', 'seq', 'val')]
+                upd_items <- mrg_data[(mrg_data$val != mrg_data$value) & !is.na(mrg_data$id), c('id', 'seq', 'val')]
                 upd_items <- upd_items[complete.cases(upd_items), ]
                 if (nrow(upd_items) > 0) {
-                        invisible(apply(
-                                upd_items,
-                                1,
-                                function(x) {
-                                        cnt <- cnt + 1
-                                        item <- list(timestamp = x[['seq']], 
-                                                     value     = x[['val']])
-                                        dummy <- updateItem(app, data_url, item, x[['id']])
-                                }
-                        ))
+                        invisible(apply(upd_items, 1, function(x) {
+                                cnt <- cnt + 1
+                                item <- list(timestamp = x[['seq']],
+                                             value     = x[['val']])
+                                dummy <- updateItem(app, data_url, item, x[['id']])
+                        }))
                 }
-                
-                # what is new -> writeItem
-                new_items <- mrg_data[(!is.na(mrg_data$val) & 
-                                               is.na(mrg_data$value)), 
-                                      c('seq', 'val')]
+                new_items <- mrg_data[(!is.na(mrg_data$val) & is.na(mrg_data$value)), c('seq', 'val')]
                 if (nrow(new_items) > 0) {
-                        invisible(apply(
-                                new_items,
-                                1,
-                                function(x) {
-                                        cnt <<- cnt + 1
-                                        item <- list(timestamp = x[['seq']], 
-                                                     value     = x[['val']])
-                                        dummy <- writeItem(app, data_url, item)
-                                }
-                        ))
+                        invisible(apply(new_items, 1, function(x) {
+                                cnt <<- cnt + 1
+                                item <- list(timestamp = x[['seq']], value = x[['val']], '_oydRepoName' = repoName)
+                                writeItem(app, data_url, item)
+                        }))
                 }
         }
         cnt
@@ -238,11 +182,5 @@ app <- setupApp(pia_url, app_key, app_secret)
 url <- itemsUrl(pia_url, 'eu.ownyourdata.room.nagios')
 sensors <- readItems(app, url)
 for (i in 1:nrow(sensors)){
-        importNagios(
-                as.character(sensors[i, 'nagiosUrl']),
-                as.character(sensors[i, 'user']),
-                as.character(sensors[i, 'password']),
-                app,
-                as.character(sensors[i, 'repo'])
-        )
+        importNagios(as.character(sensors[i, 'nagiosUrl']), app, as.character(sensors[i, 'repo']), as.character(sensors[i, 'name']), as.character(sensors[i, 'user']), as.character(sensors[i, 'password']))
 }

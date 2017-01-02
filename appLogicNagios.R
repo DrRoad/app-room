@@ -42,7 +42,7 @@ observe({
                                 Rscript_reference = 'nagios_import',
                                 Rscript_repo = scriptRepo,
                                 replace=replace)
-                        config <- list(repo=app[['app_key']],
+                        config <- list(app=app[['app_key']],
                                        time='0 */2 * * *',
                                        task='Rscript',
                                        parameters=parameters)
@@ -324,7 +324,8 @@ importNagios <- function(nagiosUrl, repo, repoName, nagiosUser, nagiosPwd){
         hdl <- getURL(nagiosUrl, 
                       userpwd=paste(nagiosUser, nagiosPwd, sep = ':'),
                       httpauth = 1L, 
-                      ssl.verifypeer = FALSE)
+                      ssl.verifypeer = FALSE,
+                      ssl.verifyhost = FALSE)
         #if(validate(content(hdl, "text"))) {
         #        raw  <- jsonlite::fromJSON(content(hdl, "text"))
         if(typeof(hdl) == 'character') {
