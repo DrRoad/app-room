@@ -329,76 +329,78 @@ importNagios <- function(nagiosUrl, repo, repoName, nagiosUser, nagiosPwd){
         #if(validate(content(hdl, "text"))) {
         #        raw  <- jsonlite::fromJSON(content(hdl, "text"))
         if(typeof(hdl) == 'character') {
-                raw <- jsonlite::fromJSON(hdl)
-                meta <- raw[1]$meta
-                rows <- raw[2]$data$row
-                seq <- as.numeric(rows$t)
-                val <- lapply(rows$v, function(x){ as.numeric(x[1]) })
-                # tmp <- unlist(raw$data$row)
-                # val <- as.numeric(tmp[seq(3, length(tmp), 3)])
-                # meta <- raw[1]$meta
-                # seq <- as.integer(meta$start) + 
-                #         (1:as.integer(meta$rows))*as.integer(meta$step)
-                data <- as.data.frame(cbind(seq, val))
-                # connect PIA ---------------------------------------------
-                app <- currApp()
-                data_url <- itemsUrl(app[['url']], repo)
-                pia_data <- readItems(app, data_url)
-                
-                # merge data
-                if(nrow(data) > 0) {
-                        if(nrow(pia_data) > 0){
-                                mrg_data <- merge(data, pia_data, 
-                                                  by.x='seq', by.y='timestamp',
-                                                  all = TRUE)
-                        } else {
-                                mrg_data <- data
-                                mrg_data$value <- NA
-                                mrg_data$id <- NA
-                        }
-                } else {
-                        if(nrow(pia_data) > 0){
-                                mrg_data <- pia_data
-                                mrg_data$val <- NA
-                        } else {
-                                mrg_data <- data.frame()
-                        }
-                }
-                
-                # what is different -> updateItem
-                upd_items <- mrg_data[(mrg_data$val != mrg_data$value) & 
-                                              !is.na(mrg_data$id), 
-                                      c('id', 'seq', 'val')]
-                upd_items <- upd_items[complete.cases(upd_items), ]
-                if (nrow(upd_items) > 0) {
-                        invisible(apply(
-                                upd_items,
-                                1,
-                                function(x) {
-                                        cnt <- cnt + 1
-                                        item <- list(timestamp = x[['seq']], 
-                                                     value     = x[['val']])
-                                        dummy <- updateItem(app, data_url, item, x[['id']])
+                if(jsonlite::validate(hdl)){
+                        raw <- jsonlite::fromJSON(hdl)
+                        meta <- raw[1]$meta
+                        rows <- raw[2]$data$row
+                        seq <- as.numeric(rows$t)
+                        val <- lapply(rows$v, function(x){ as.numeric(x[1]) })
+                        # tmp <- unlist(raw$data$row)
+                        # val <- as.numeric(tmp[seq(3, length(tmp), 3)])
+                        # meta <- raw[1]$meta
+                        # seq <- as.integer(meta$start) + 
+                        #         (1:as.integer(meta$rows))*as.integer(meta$step)
+                        data <- as.data.frame(cbind(seq, val))
+                        # connect PIA ---------------------------------------------
+                        app <- currApp()
+                        data_url <- itemsUrl(app[['url']], repo)
+                        pia_data <- readItems(app, data_url)
+                        
+                        # merge data
+                        if(nrow(data) > 0) {
+                                if(nrow(pia_data) > 0){
+                                        mrg_data <- merge(data, pia_data, 
+                                                          by.x='seq', by.y='timestamp',
+                                                          all = TRUE)
+                                } else {
+                                        mrg_data <- data
+                                        mrg_data$value <- NA
+                                        mrg_data$id <- NA
                                 }
-                        ))
-                }
-                
-                # what is new -> writeItem
-                new_items <- mrg_data[(!is.na(mrg_data$val) & 
-                                               is.na(mrg_data$value)), 
-                                      c('seq', 'val')]
-                if (nrow(new_items) > 0) {
-                        invisible(apply(
-                                new_items,
-                                1,
-                                function(x) {
-                                        cnt <<- cnt + 1
-                                        item <- list(timestamp = x[['seq']], 
-                                                     value     = x[['val']])
-                                        item$`_oydRepoName` <- repoName
-                                        writeItem(app, data_url, item)
+                        } else {
+                                if(nrow(pia_data) > 0){
+                                        mrg_data <- pia_data
+                                        mrg_data$val <- NA
+                                } else {
+                                        mrg_data <- data.frame()
                                 }
-                        ))
+                        }
+                        
+                        # what is different -> updateItem
+                        upd_items <- mrg_data[(mrg_data$val != mrg_data$value) & 
+                                                      !is.na(mrg_data$id), 
+                                              c('id', 'seq', 'val')]
+                        upd_items <- upd_items[complete.cases(upd_items), ]
+                        if (nrow(upd_items) > 0) {
+                                invisible(apply(
+                                        upd_items,
+                                        1,
+                                        function(x) {
+                                                cnt <- cnt + 1
+                                                item <- list(timestamp = x[['seq']], 
+                                                             value     = x[['val']])
+                                                dummy <- updateItem(app, data_url, item, x[['id']])
+                                        }
+                                ))
+                        }
+                        
+                        # what is new -> writeItem
+                        new_items <- mrg_data[(!is.na(mrg_data$val) & 
+                                                       is.na(mrg_data$value)), 
+                                              c('seq', 'val')]
+                        if (nrow(new_items) > 0) {
+                                invisible(apply(
+                                        new_items,
+                                        1,
+                                        function(x) {
+                                                cnt <<- cnt + 1
+                                                item <- list(timestamp = x[['seq']], 
+                                                             value     = x[['val']])
+                                                item$`_oydRepoName` <- repoName
+                                                writeItem(app, data_url, item)
+                                        }
+                                ))
+                        }
                 }
         }
         cnt
