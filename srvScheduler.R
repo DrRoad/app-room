@@ -5,7 +5,8 @@ readSchedulerItems <- function(){
         app <- currApp()
         if(length(app) > 0){
                 url <- itemsUrl(app[['url']], scheduler_id)
-                readItems(app, url)
+                allItems <- readItems(app, url)
+                allItems[allItems$app == app[['app_key']], ]
         } else {
                 data.frame()
         }

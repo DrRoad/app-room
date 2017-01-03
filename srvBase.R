@@ -75,12 +75,12 @@ r2d <- function(response){
                                                         # convert list to data.frame
                                                         do.call(bind_rows, 
                                                                 lapply(retVal, 
-                                                                       data.frame))
+                                                                       function(x) data.frame(x, stringsAsFactors = FALSE)))
                                                 }
                                         } else {
                                                 do.call(bind_rows, 
                                                         lapply(retVal, 
-                                                               data.frame))
+                                                               function(x) data.frame(x, stringsAsFactors = FALSE)))
                                         }
                                 }
                         }
@@ -119,6 +119,7 @@ readItems <- function(app, repo_url) {
                                         RCurl::getURL(url_data,
                                                .opts=list(httpheader=headers)),
                                         error = function(e) { return(NA) })
+                                cat(url_data)
                                 subData <- r2d(response)
                                 if(nrow(respData)>0){
                                         respData <- rbind(respData, subData)
@@ -172,6 +173,13 @@ deleteItem <- function(app, repo_url, id){
                              add_headers(headers)),
                 error = function(e) { return(NA) })
         response
+}
+
+# delete all items in a repo
+deleteRepo <- function(app, repo_url){
+        allItems <- readItems(app, repo_url)
+        lapply(allItems$id, 
+               function(x) deleteItem(app, repo_url, x))
 }
 
 # other helper functions ==================================

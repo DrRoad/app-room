@@ -47,21 +47,29 @@ observe({
                                        task='Rscript',
                                        parameters=parameters)
                         config$`_oydRepoName` <- 'Scheduler'
-                        if(is.null(schedulerItems[['id']])) {
-                                writeItem(app,
-                                          itemsUrl(app[['url']], scheduler_id),
-                                          config)
-                        } else {
-                                updateItem(app,
-                                           itemsUrl(app[['url']], scheduler_id),
-                                           config,
-                                           schedulerItems[['id']])
+                        scheduler_url <- itemsUrl(app[['url']], scheduler_id)
+                        if(nrow(schedulerItems) > 1){
+                                lapply(schedulerItems$id, 
+                                       function(x) deleteItem(app, scheduler_url, x))
+                                schedulerItems = data.frame()
                         }
+                        if(nrow(schedulerItems) == 0) {
+                                writeItem(app, scheduler_url, config)
+                        }
+                        if(nrow(schedulerItems) == 1) {
+                                updateItem(app, scheduler_url, config, schedulerItems[['id']])
+                        }
+                        
                         scriptRepoUrl <- itemsUrl(app[['url']], scriptRepo)
                         scriptItems <- readItems(app, scriptRepoUrl)
                         scriptData <- list(name='nagios_import',
                                      script=nagiosImportScript)
                         scriptData$`_oydRepoName` <- 'Raumklima-Skript'
+                        if (nrow(scriptItems) > 1){
+                                lapply(scriptItems$id, 
+                                       function(x) deleteItem(app, scriptRepoUrl, x))
+                                scriptItems = data.frame()
+                        }
                         if (nrow(scriptItems) == 0){
                                 writeItem(app,
                                           scriptRepoUrl,
