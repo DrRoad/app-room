@@ -341,7 +341,9 @@ importNagios <- function(nagiosUrl, repo, repoName, nagiosUser, nagiosPwd){
                         raw <- jsonlite::fromJSON(hdl)
                         meta <- raw[1]$meta
                         rows <- raw[2]$data$row
-                        seq <- as.numeric(rows$t)
+                        # seq <- as.numeric(rows$t)
+                        seq <- as.integer(meta$start) +
+                                (1:as.integer(meta$rows))*as.integer(meta$step)
                         val <- lapply(rows$v, function(x){ as.numeric(x[1]) })
                         # tmp <- unlist(raw$data$row)
                         # val <- as.numeric(tmp[seq(3, length(tmp), 3)])
@@ -349,11 +351,16 @@ importNagios <- function(nagiosUrl, repo, repoName, nagiosUser, nagiosPwd){
                         # seq <- as.integer(meta$start) + 
                         #         (1:as.integer(meta$rows))*as.integer(meta$step)
                         data <- as.data.frame(cbind(seq, val))
+                        data <- data.frame(matrix(unlist(data), 
+                                                  nrow=nrow(data), 
+                                                  byrow=F))
+                        data <- data[complete.cases(data), ]
+                        colnames(data) <- c('seq', 'val')
                         # connect PIA ---------------------------------------------
                         app <- currApp()
                         data_url <- itemsUrl(app[['url']], repo)
                         pia_data <- readItems(app, data_url)
-                        
+
                         # merge data
                         if(nrow(data) > 0) {
                                 if(nrow(pia_data) > 0){
@@ -374,6 +381,9 @@ importNagios <- function(nagiosUrl, repo, repoName, nagiosUser, nagiosPwd){
                                 }
                         }
                         
+                        # if(!('seq' %in% colnames(mrg_data))) {
+                        #         mrg_data$seq <- NA
+                        # }
                         # what is different -> updateItem
                         upd_items <- mrg_data[(mrg_data$val != mrg_data$value) & 
                                                       !is.na(mrg_data$id), 

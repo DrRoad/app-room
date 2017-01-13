@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if ! hash telnet 2>/dev/null; then
+  echo "Bitte installiere telnet"
+  exit
+fi
+
+for port in $(seq 8080 8999); do echo -ne "\035" | telnet 127.0.0.1 $port > /dev/null 2>&1; [ $? -eq 1 ] && break; done
+
+if [ "$(uname)" == "Darwin" ]; then
+  IP_ADR=`ifconfig en0 | grep inet | grep -v inet6 | awk '{print $2}'`
+else # elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+  IP_ADR=`ip route get 8.8.8.8 | awk 'NR==1 {print $NF}'`
+fi
+
+docker stop raumklima >/dev/null 2>&1
+docker rm $(docker ps -q -f status=exited) >/dev/null 2>&1
+echo "starte..."
+if [[ "$(uname -m)" == *"arm"* ]]; then
+  docker run --name raumklima -d -p $port:3838 oydeu/app-room_armhf
+else
+  docker run --name raumklima -d -p $port:3838 oydeu/app-room
+fi
+
+echo -e "\nDie Raumklima-App wurde gestartet und ist unter http://$IP_ADR:$port erreichbar."
+echo "Feedback: support@ownyourdata.eu"
