@@ -1,6 +1,7 @@
 #!/bin/bash
 
 APP="app-room_armhf"
+APP_GIT="app-room"
 APP_NAME="raumklima"
 
 # read commandline options
@@ -37,7 +38,7 @@ if $REFRESH; then
     if [ "${BASH_SOURCE[0]}" != "${0}" ]; then
         cd ~/docker
         rm -rf $APP
-        svn checkout https://github.com/OwnYourData/$APP/trunk/docker/$APP
+        svn checkout https://github.com/OwnYourData/$APP_GIT/trunk/docker/$APP
         echo "refreshed"
         cd ~/docker/$APP
         return
