@@ -119,7 +119,6 @@ readItems <- function(app, repo_url) {
                                         RCurl::getURL(url_data,
                                                .opts=list(httpheader=headers)),
                                         error = function(e) { return(NA) })
-                                cat(url_data)
                                 subData <- r2d(response)
                                 if(nrow(respData)>0){
                                         respData <- rbind(respData, subData)

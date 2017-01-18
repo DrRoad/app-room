@@ -1,17 +1,20 @@
 {
-        "name":"Raumklima App",
+        "name":"Raumklima",
         "identifier":"eu.ownyourdata.room",
+        "appUrl":"https://raumklima.datentresor.org",
+        "mobileUrl":"https://raumklima-mobil.datentresor.org",
+        "infoUrl":"https://www.ownyourdata.eu/apps/room/",
         "type":"external",
-        "description":"messe dein Raumklima und steuere Geräte",
-        "permissions":[
-                "eu.ownyourdata.info:read",
-                "eu.ownyourdata.scheduler:read",
-                "eu.ownyourdata.scheduler:write",
-                "eu.ownyourdata.scheduler:update",
-                "eu.ownyourdata.room.*:read",
-                "eu.ownyourdata.room.*:write",
-                "eu.ownyourdata.room.*:update",
-                "eu.ownyourdata.room.*:delete"]
+        "description":"Sammle Klimadaten und steuere damit Heizung und Lüftung. Hinweis: Hierzu brauchst Du spezielle Sensoren.",
+        "permissions":[ "eu.ownyourdata.info:read",
+                        "eu.ownyourdata.info:write",
+                        "eu.ownyourdata.info:update",
+                        "eu.ownyourdata.room.*:read",
+                        "eu.ownyourdata.room.*:write",
+                        "eu.ownyourdata.room.*:update",
+                        "eu.ownyourdata.room.*:delete",
+                        "eu.ownyourdata.scheduler:read",
+                        "eu.ownyourdata.scheduler:write",
+                        "eu.ownyourdata.scheduler:update",
+                        "eu.ownyourdata.scheduler:delete" ]
 }
-base64-encoded manifest (https://www.base64encode.org/)
-ew0KICAgICAgICAibmFtZSI6IlJhdW1rbGltYSBBcHAiLA0KICAgICAgICAiaWRlbnRpZmllciI6ImV1Lm93bnlvdXJkYXRhLnJvb20iLA0KICAgICAgICAidHlwZSI6ImV4dGVybmFsIiwNCiAgICAgICAgImRlc2NyaXB0aW9uIjoibWVzc2UgZGVpbiBSYXVta2xpbWEgdW5kIHN0ZXVlcmUgR2Vyw6R0ZSIsDQogICAgICAgICJwZXJtaXNzaW9ucyI6Ww0KICAgICAgICAgICAgICAgICJldS5vd255b3VyZGF0YS5pbmZvOnJlYWQiLA0KICAgICAgICAgICAgICAgICJldS5vd255b3VyZGF0YS5zY2hlZHVsZXI6cmVhZCIsDQogICAgICAgICAgICAgICAgImV1Lm93bnlvdXJkYXRhLnNjaGVkdWxlcjp3cml0ZSIsDQogICAgICAgICAgICAgICAgImV1Lm93bnlvdXJkYXRhLnNjaGVkdWxlcjp1cGRhdGUiLA0KICAgICAgICAgICAgICAgICJldS5vd255b3VyZGF0YS5yb29tLio6cmVhZCIsDQogICAgICAgICAgICAgICAgImV1Lm93bnlvdXJkYXRhLnJvb20uKjp3cml0ZSIsDQogICAgICAgICAgICAgICAgImV1Lm93bnlvdXJkYXRhLnJvb20uKjp1cGRhdGUiLA0KICAgICAgICAgICAgICAgICJldS5vd255b3VyZGF0YS5yb29tLio6ZGVsZXRlIl0NCn0

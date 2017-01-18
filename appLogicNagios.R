@@ -47,7 +47,7 @@ observe({
                                        task='Rscript',
                                        parameters=parameters)
                         config$`_oydRepoName` <- 'Scheduler'
-                        scheduler_url <- itemsUrl(app[['url']], scheduler_id)
+                        scheduler_url <- itemsUrl(app[['url']], schedulerKey)
                         if(nrow(schedulerItems) > 1){
                                 lapply(schedulerItems$id, 
                                        function(x) deleteItem(app, scheduler_url, x))
