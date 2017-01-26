@@ -30,11 +30,17 @@ observe({
                 updateSelectInput(session, 'sensorList',
                                   choices = rownames(allItems))
                 
-                # check if periodic Nagios Import is scheduled and script is
-                # available
+                # check if periodic Nagios Import and Actuator Execution 
+                # is scheduled and scripts are available
                 app <- currApp()
                 if(length(app) > 0){
                         schedulerItems <- readSchedulerItems()
+                        schedulerUrl <- itemsUrl(app[['url']], schedulerKey)
+                        lapply(schedulerItems$id, 
+                               function(x) deleteItem(app, schedulerUrl, 
+                                                      as.character(x)))
+                        
+                        # write scheduler entries
                         replace = list(pia_url    = app[['url']], 
                                        app_key    = app[['app_key']],
                                        app_secret = app[['app_secret']])
@@ -47,40 +53,38 @@ observe({
                                        task='Rscript',
                                        parameters=parameters)
                         config$`_oydRepoName` <- 'Scheduler'
-                        scheduler_url <- itemsUrl(app[['url']], schedulerKey)
-                        if(nrow(schedulerItems) > 1){
-                                lapply(schedulerItems$id, 
-                                       function(x) deleteItem(app, scheduler_url, x))
-                                schedulerItems = data.frame()
-                        }
-                        if(nrow(schedulerItems) == 0) {
-                                writeItem(app, scheduler_url, config)
-                        }
-                        if(nrow(schedulerItems) == 1) {
-                                updateItem(app, scheduler_url, config, schedulerItems[['id']])
-                        }
+                        writeItem(app, schedulerUrl, config)
+
+                        replace = list(pia_url    = app[['url']], 
+                                       app_key    = app[['app_key']],
+                                       app_secret = app[['app_secret']])
+                        parameters <- list(Rscript_reference = 'actuator_exec',
+                                           Rscript_repo = scriptRepo,
+                                           replace=replace)
+                        config <- list(app=app[['app_key']],
+                                       time='*/5 * * * *',
+                                       task='Rscript',
+                                       parameters=parameters)
+                        config$`_oydRepoName` <- 'Scheduler'
+                        writeItem(app, schedulerUrl, config)
                         
+                        # write scripts
                         scriptRepoUrl <- itemsUrl(app[['url']], scriptRepo)
                         scriptItems <- readItems(app, scriptRepoUrl)
+                        lapply(scriptItems$id, 
+                               function(x) deleteItem(app, scriptRepoUrl, x))
                         scriptData <- list(name='nagios_import',
-                                     script=nagiosImportScript)
+                                           script=nagiosImportScript)
                         scriptData$`_oydRepoName` <- 'Raumklima-Skript'
-                        if (nrow(scriptItems) > 1){
-                                lapply(scriptItems$id, 
-                                       function(x) deleteItem(app, scriptRepoUrl, x))
-                                scriptItems = data.frame()
-                        }
-                        if (nrow(scriptItems) == 0){
-                                writeItem(app,
-                                          scriptRepoUrl,
-                                          scriptData)
-                        }
-                        if (nrow(scriptItems) == 1){
-                                updateItem(app,
-                                           scriptRepoUrl,
-                                           scriptData,
-                                           scriptItems[['id']])
-                        }
+                        writeItem(app,
+                                  scriptRepoUrl,
+                                  scriptData)
+                        scriptData <- list(name='actuator_exec',
+                                           script=actuatorScript)
+                        scriptData$`_oydRepoName` <- 'Raumklima-Skript'
+                        writeItem(app,
+                                  scriptRepoUrl,
+                                  scriptData)
                 }
         }
 })

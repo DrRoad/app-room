@@ -23,10 +23,10 @@ headerTitle <- function() {
                 if(nrow(infoRec) == 1){
                         infoRec$name
                 } else {
-                        "Neue PIA"                        
+                        "Neuer Datentresor"                        
                 }
         } else {
-                "Neue PIA"
+                "Neuer Datentresor"
         }
 }
 

@@ -6,7 +6,8 @@ readSchedulerItems <- function(){
         if(length(app) > 0){
                 url <- itemsUrl(app[['url']], schedulerKey)
                 allItems <- readItems(app, url)
-                allItems[allItems$app == app[['app_key']], ]
+                allItems[allItems$app == app[['app_key']] & 
+                         !is.na(allItems$app), ]
         } else {
                 data.frame()
         }

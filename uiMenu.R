@@ -35,7 +35,7 @@ uiMenu <- function(){
                                                           p('entwickelt von ',
                                                             a(href='https://www.ownyourdata.eu',
                                                               'https://OwnYourData.eu')),
-                                                          p('MIT Lizenz, 2016')
+                                                          p('MIT Lizenz, 2017')
                                                   )
                                          )
                                 )

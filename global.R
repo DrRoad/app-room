@@ -16,6 +16,7 @@ source('appLib.R')
 source('appConstants.R')
 
 # General Variables =======================================
+options(scipen=999)
 infoKey <- 'eu.ownyourdata.info'
 schedulerKey <- 'eu.ownyourdata.scheduler'        
 schedulerEmailConfigKey <- 'eu.ownyourdata.scheduler.email_config'
