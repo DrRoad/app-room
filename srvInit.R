@@ -2,8 +2,8 @@
 # last update: 2016-10-29
 
 observe({
-        # session$sendCustomMessage(type='setPiaUrl',
-        #                           input$store$pia_url)
+        session$sendCustomMessage(type='setPiaUrl',
+                                  input$store$pia_url)
         urlParams <- parseQueryString(session$clientData$url_search)
         urlParamExist <- FALSE
         if(is.null(urlParams[['PIA_URL']])){

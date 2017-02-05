@@ -5,20 +5,20 @@
 readNagiosItems <- function(){
         app <- currApp()
         sensorItems <- data.frame()
-        # if(length(app) > 0){
-        #         url <- itemsUrl(app[['url']], 
-        #                         paste0(app[['app_key']],
-        #                                '.nagios'))
-        #         sensorItems <- readItems(app, url)
-        #         if(nrow(sensorItems) > 0){
-        #                 rownames(sensorItems) <- sensorItems$name
-        #                 sensorItems <- sensorItems[, c('nagiosUrl',
-        #                                                'repo',
-        #                                                'user',
-        #                                                'password',
-        #                                                'active')]
-        #         }
-        # }
+        if(length(app) > 0){
+                url <- itemsUrl(app[['url']], 
+                                paste0(app[['app_key']],
+                                       '.nagios'))
+                sensorItems <- readItems(app, url)
+                if(nrow(sensorItems) > 0){
+                        rownames(sensorItems) <- sensorItems$name
+                        sensorItems <- sensorItems[, c('nagiosUrl',
+                                                       'repo',
+                                                       'user',
+                                                       'password',
+                                                       'active')]
+                }
+        }
         sensorItems
 }
 
@@ -281,8 +281,8 @@ observeEvent(input$delSensorList, {
 })
 
 observeEvent(input$testNagiosUrl, {
-        # session$sendCustomMessage(type='openUrlInNewTab',
-        #                           input$sensorItemNagiosUrl)
+        session$sendCustomMessage(type='openUrlInNewTab',
+                                  input$sensorItemNagiosUrl)
 })
 
 observeEvent(input$importSensorList, {

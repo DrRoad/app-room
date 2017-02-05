@@ -8,11 +8,10 @@ appSource <- function(){
         fluidRow(
                 column(12,
                        # uiOutput('desktopUiSourceItemsRender')
-                       p('hello world')
-                       # tabsetPanel(
-                       #         type='tabs',
-                       #         appSourceNagios()
-                       # )
+                       tabsetPanel(
+                               type='tabs',
+                               appSourceNagios()
+                       )
                 )
         )
 }

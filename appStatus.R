@@ -10,11 +10,10 @@ appStatus <- function(){
         fluidRow(
                 column(12, 
                        # uiOutput('desktopUiStatusItemsRender')
-                       p('hello world')
-                       # tabsetPanel(type='tabs',
-                       #             appStatusCompare(),
-                       #             appStatusActuator()
-                       # )
+                       tabsetPanel(type='tabs',
+                                   appStatusCompare(),
+                                   appStatusActuator()
+                       )
                 )
         )
 }
