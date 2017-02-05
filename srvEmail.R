@@ -84,11 +84,15 @@ getPiaEmailConfig <- function(app){
         url <- itemsUrl(app[['url']],
                         schedulerEmailConfigKey)
         retVal <- readItems(app, url)
-        if(length(retVal) == 0 |
-           nrow(retVal) == 0) {
+        if(is.null(retVal)){
                 vector()
         } else {
-                retVal
+                if(length(retVal) == 0 |
+                   nrow(retVal) == 0) {
+                        vector()
+                } else {
+                        retVal
+                }
         }
 }
 
