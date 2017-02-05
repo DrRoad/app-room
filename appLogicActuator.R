@@ -28,32 +28,69 @@ observe({
                                   choices = rownames(allItems))
                 
                 # check if periodic Actuator actions are scheduled
-                # schedulerItems <- readSchedulerItems()
-                # rScript <- toString(runActuatorScript)
-                # app <- currApp()
-                # if(length(app) > 0){
-                #         replace = list(pia_url    = app[['url']], 
-                #                        app_key    = app[['app_key']],
-                #                        app_secret = app[['app_secret']])
-                #         parameters <- list(
-                #                 Rscript_base64=rScript,
-                #                 replace=replace)
-                #         config <- list(repo=paste0(app[['app_key']],
-                #                                   '.actuator'),
-                #                        time='* * * * *',
-                #                        task='Rscript',
-                #                        parameters=parameters)
-                #         if(is.null(schedulerItems[['id']])) {
-                #                 writeItem(app,
-                #                           itemsUrl(app[['url']], scheduler_id),
-                #                           config)
-                #         } else {
-                #                 updateItem(app,
-                #                            itemsUrl(app[['url']], scheduler_id),
-                #                            config,
-                #                            schedulerItems[['id']])
-                #         }
-                # }
+                app <- currApp()
+                if(length(app) > 0){
+                        schedulerItems <- readSchedulerItems()
+                        schedulerUrl <- itemsUrl(app[['url']], schedulerKey)
+                        
+                        # get scheduler item for actuator action
+                        schedulerActuator <- schedulerItems[
+                                schedulerItems$parameters.Rscript_reference == 
+                                        'actuator_exec', ]
+                        if(nrow(schedulerActuator) > 1){
+                                lapply(schedulerActuator$id,
+                                       function(x) deleteItem(app, schedulerUrl,
+                                                              as.character(x)))
+                                schedulerActuator <- data.frame()
+                        }
+                        
+                        # write scheduler entries
+                        replace = list(pia_url    = app[['url']],
+                                       app_key    = app[['app_key']],
+                                       app_secret = app[['app_secret']])
+                        parameters <- list(Rscript_reference = 'actuator_exec',
+                                           Rscript_repo = scriptRepo,
+                                           replace=replace)
+                        config <- list(app=app[['app_key']],
+                                       time='*/5 * * * *',
+                                       task='Rscript',
+                                       parameters=parameters)
+                        config$`_oydRepoName` <- 'Scheduler'
+                        
+                        if(nrow(schedulerActuator) == 0){
+                                writeItem(app, schedulerUrl, config)
+                        } else {
+                                updateItem(app, schedulerUrl, config,
+                                           schedulerActuator$id)
+                        }
+                        
+                        # write script for scheduler entry----------------------
+                        scriptRepoUrl <- itemsUrl(app[['url']], scriptRepo)
+                        scriptItems <- readItems(app, scriptRepoUrl)
+                        
+                        # get scheduler script for actuator exec
+                        schedulerActuatorScript <- scriptItems[
+                                scriptItems$name == 'actuator_exec', ]
+                        if(nrow(schedulerActuatorScript) > 1){
+                                lapply(schedulerActuatorScript$id,
+                                       function(x) deleteItem(app, 
+                                                              scriptRepoUrl,
+                                                              as.character(x)))
+                                schedulerActuatorScript <- data.frame()
+                        }
+                        
+                        # write scripts
+                        scriptData <- list(name='actuator_exec',
+                                           script=actuatorScript)
+                        scriptData$`_oydRepoName` <- 'Raumklima-Skript'
+                        
+                        if(nrow(schedulerActuatorScript) == 0){
+                                writeItem(app, scriptRepoUrl, scriptData)
+                        } else {
+                                updateItem(app, scriptRepoUrl, scriptData,
+                                           schedulerActuatorScript$id)
+                        }
+                }
         }
 })
 

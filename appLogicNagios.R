@@ -30,62 +30,71 @@ observe({
                 updateSelectInput(session, 'sensorList',
                                   choices = rownames(allItems))
 
-                # check if periodic Nagios Import and Actuator Execution
-                # is scheduled and scripts are available
+                # check if periodic Nagios Import is scheduled and script is available
                 app <- currApp()
-        #         if(length(app) > 0){
-        #                 schedulerItems <- readSchedulerItems()
-        #                 schedulerUrl <- itemsUrl(app[['url']], schedulerKey)
-        #                 lapply(schedulerItems$id, 
-        #                        function(x) deleteItem(app, schedulerUrl, 
-        #                                               as.character(x)))
-        #                 
-        #                 # write scheduler entries
-        #                 replace = list(pia_url    = app[['url']], 
-        #                                app_key    = app[['app_key']],
-        #                                app_secret = app[['app_secret']])
-        #                 parameters <- list(
-        #                         Rscript_reference = 'nagios_import',
-        #                         Rscript_repo = scriptRepo,
-        #                         replace=replace)
-        #                 config <- list(app=app[['app_key']],
-        #                                time='0 */2 * * *',
-        #                                task='Rscript',
-        #                                parameters=parameters)
-        #                 config$`_oydRepoName` <- 'Scheduler'
-        #                 writeItem(app, schedulerUrl, config)
-        # 
-        #                 replace = list(pia_url    = app[['url']], 
-        #                                app_key    = app[['app_key']],
-        #                                app_secret = app[['app_secret']])
-        #                 parameters <- list(Rscript_reference = 'actuator_exec',
-        #                                    Rscript_repo = scriptRepo,
-        #                                    replace=replace)
-        #                 config <- list(app=app[['app_key']],
-        #                                time='*/5 * * * *',
-        #                                task='Rscript',
-        #                                parameters=parameters)
-        #                 config$`_oydRepoName` <- 'Scheduler'
-        #                 writeItem(app, schedulerUrl, config)
-        #                 
-        #                 # write scripts
-        #                 scriptRepoUrl <- itemsUrl(app[['url']], scriptRepo)
-        #                 scriptItems <- readItems(app, scriptRepoUrl)
-        #                 lapply(scriptItems$id, 
-        #                        function(x) deleteItem(app, scriptRepoUrl, x))
-        #                 scriptData <- list(name='nagios_import',
-        #                                    script=nagiosImportScript)
-        #                 scriptData$`_oydRepoName` <- 'Raumklima-Skript'
-        #                 writeItem(app,
-        #                           scriptRepoUrl,
-        #                           scriptData)
-        #                 scriptData <- list(name='actuator_exec',
-        #                                    script=actuatorScript)
-        #                 scriptData$`_oydRepoName` <- 'Raumklima-Skript'
-        #                 writeItem(app,
-        #                           scriptRepoUrl,
-        #                           scriptData)
-        #         }
+                if(length(app) > 0){
+                        schedulerItems <- readSchedulerItems()
+                        schedulerUrl <- itemsUrl(app[['url']], schedulerKey)
+                        
+                        # get scheduler item for importing sensor data----------
+                        schedulerSensor <- schedulerItems[
+                                schedulerItems$parameters.Rscript_reference == 
+                                        'nagios_import', ]
+                        if(nrow(schedulerSensor) > 1){
+                                lapply(schedulerSensor$id,
+                                       function(x) deleteItem(app, schedulerUrl,
+                                                              as.character(x)))
+                                schedulerSensor <- data.frame()
+                        }
+                        
+                        # write scheduler entries
+                        replace = list(pia_url    = app[['url']],
+                                       app_key    = app[['app_key']],
+                                       app_secret = app[['app_secret']])
+                        parameters <- list(
+                                Rscript_reference = 'nagios_import',
+                                Rscript_repo = scriptRepo,
+                                replace=replace)
+                        config <- list(app=app[['app_key']],
+                                       time='0 */2 * * *',
+                                       task='Rscript',
+                                       parameters=parameters)
+                        config$`_oydRepoName` <- 'Scheduler'
+
+                        if(nrow(schedulerSensor) == 0){
+                                writeItem(app, schedulerUrl, config)
+                        } else {
+                                updateItem(app, schedulerUrl, config,
+                                           schedulerSensor$id)
+                        }
+                        
+                        # write script for scheduler entry----------------------
+                        scriptRepoUrl <- itemsUrl(app[['url']], scriptRepo)
+                        scriptItems <- readItems(app, scriptRepoUrl)
+                        
+                        # get scheduler script for importing sensor data
+                        schedulerSensorScript <- scriptItems[
+                                scriptItems$name == 'nagios_import', ]
+                        if(nrow(schedulerSensorScript) > 1){
+                                lapply(schedulerSensorScript$id,
+                                       function(x) deleteItem(app, 
+                                                              scriptRepoUrl,
+                                                              as.character(x)))
+                                schedulerSensorScript <- data.frame()
+                        }
+                        
+                        # write scripts
+                        scriptData <- list(name='nagios_import',
+                                           script=nagiosImportScript)
+                        scriptData$`_oydRepoName` <- 'Raumklima-Skript'
+                        
+                        if(nrow(schedulerSensorScript) == 0){
+                                writeItem(app, scriptRepoUrl, scriptData)
+                        } else {
+                                updateItem(app, scriptRepoUrl, scriptData,
+                                           schedulerSensorScript$id)
+                        }
+                }
         }
 })
 
