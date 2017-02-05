@@ -2,7 +2,7 @@
 # last update: 2016-10-12
 
 # get stored Sensors in Nagios
-readNagiosItems <- function(){
+readNagiosItems <- reactive({
         app <- currApp()
         sensorItems <- data.frame()
         if(length(app) > 0){
@@ -20,19 +20,19 @@ readNagiosItems <- function(){
                 }
         }
         sensorItems
-}
+})
 
 # executed on Start
 observe({
-        # if(is.null(input$sensorList)){
-        #         sensorList()
-        #         allItems <- readNagiosItems()
-        #         updateSelectInput(session, 'sensorList',
-        #                           choices = rownames(allItems))
-        #         
-        #         # check if periodic Nagios Import and Actuator Execution 
-        #         # is scheduled and scripts are available
-        #         app <- currApp()
+        if(is.null(input$sensorList)){
+                sensorList()
+                allItems <- readNagiosItems()
+                updateSelectInput(session, 'sensorList',
+                                  choices = rownames(allItems))
+
+                # check if periodic Nagios Import and Actuator Execution
+                # is scheduled and scripts are available
+                app <- currApp()
         #         if(length(app) > 0){
         #                 schedulerItems <- readSchedulerItems()
         #                 schedulerUrl <- itemsUrl(app[['url']], schedulerKey)
@@ -86,7 +86,7 @@ observe({
         #                           scriptRepoUrl,
         #                           scriptData)
         #         }
-        # }
+        }
 })
 
 # show attributes on selecting an item in the Sensor list
