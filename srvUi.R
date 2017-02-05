@@ -10,7 +10,7 @@ output$versionHistory <- renderText({
 output$hdrImageLinkDesktop <- renderUI({
         # fix for "Raspberry Navigation"
         updateNavbarPage(session, 'mainPage', selected = appName)
-        session$sendCustomMessage(type='finishInit', NA)
+        #session$sendCustomMessage(type='finishInit', NA)
         renderHdrImageLink()
 })
 
@@ -23,10 +23,10 @@ headerTitle <- function() {
                 if(nrow(infoRec) == 1){
                         infoRec$name
                 } else {
-                        "Neuer Datentresor"                        
+                        "Mein Datentresor"                        
                 }
         } else {
-                "Neuer Datentresor"
+                "Mein Datentresor"
         }
 }
 
