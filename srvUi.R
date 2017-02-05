@@ -23,23 +23,31 @@ headerTitle <- function() {
                 if(nrow(infoRec) == 1){
                         infoRec$name
                 } else {
-                        "Neuer Datentresor"                        
+                        "Mein Datentresor"                        
                 }
         } else {
-                "Neuer Datentresor"
+                "Mein Datentresor"
         }
 }
 
 renderHdrImageLink <- function() {
-        tags$div(
-                tags$a(href=input$store$pia_url,
-                       id='hdrIconPIAlink',
-                       tags$img(height='25px', style='margin-top:-5px',
-                                src=oydLogo)),
-                tags$a(href=input$store$pia_url, 
-                       id='hdrTextPIAlink',
-                       headerTitle())
-        )
+        app <- currApp()
+        if(length(app) > 0){
+                tags$div(
+                        tags$a(href=app[['url']],
+                               tags$img(height='25px', style='margin-top:-5px',
+                                        src=oydLogo)),
+                        tags$a(href=app[['url']], 
+                               headerTitle())
+                )
+        } else {
+                tags$div(
+                       tags$img(height='25px', 
+                                style='margin-top:-5px',
+                                src=oydLogo),
+                        headerTitle()
+                )
+        }
 }
 
 observeEvent(input$buttonVisual, {
