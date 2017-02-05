@@ -10,7 +10,7 @@ output$versionHistory <- renderText({
 output$hdrImageLinkDesktop <- renderUI({
         # fix for "Raspberry Navigation"
         updateNavbarPage(session, 'mainPage', selected = appName)
-        session$sendCustomMessage(type='finishInit', NA)
+        #session$sendCustomMessage(type='finishInit', NA)
         renderHdrImageLink()
 })
 
@@ -33,9 +33,12 @@ headerTitle <- function() {
 renderHdrImageLink <- function() {
         tags$div(
                 tags$a(href=input$store$pia_url,
+                       id='hdrIconPIAlink',
                        tags$img(height='25px', style='margin-top:-5px',
                                 src=oydLogo)),
-                tags$a(href=input$store$pia_url, headerTitle())
+                tags$a(href=input$store$pia_url, 
+                       id='hdrTextPIAlink',
+                       headerTitle())
         )
 }
 

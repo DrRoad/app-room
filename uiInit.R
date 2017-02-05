@@ -31,6 +31,8 @@ uiInit <- function(){
                         });")),
                 tags$script(
                         'Shiny.addCustomMessageHandler("setPiaUrl", function(x) {      
+                                $("#hdrIconPIAlink").attr("href", x);
+                                $("#hdrTextPIAlink").attr("href", x);
                                 $("#returnPIAlink").attr("href", x);
                         })'
                 ),
