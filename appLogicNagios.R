@@ -2,7 +2,7 @@
 # last update: 2016-10-12
 
 # get stored Sensors in Nagios
-readNagiosItems <- reactive({
+readNagiosItems <- function(){
         app <- currApp()
         sensorItems <- data.frame()
         if(length(app) > 0){
@@ -20,7 +20,7 @@ readNagiosItems <- reactive({
                 }
         }
         sensorItems
-})
+}
 
 # executed on Start
 observe({

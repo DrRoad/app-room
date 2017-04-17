@@ -5,6 +5,8 @@
 appName <- 'room'
 appTitle <- 'Raumklima'
 app_id <- 'eu.ownyourdata.room'
+helpUrl <- 'https://www.ownyourdata.eu/apps/room/'
+mobileUrl <- 'https://raumklima-mobil.oydapp.eu'
 
 # definition of data structure
 currRepoSelect <- ''
